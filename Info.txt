@@ -1,0 +1,43 @@
+Brainstorm
+
+Goal: Identify seismic events using algorithms or manually sifting through the data
+
+
+Algorithms to look into
+
+- STA/LTA
+- machine learning techniques
+- high-pass filters
+- Fourier spectrum analysis
+
+
+Considerations:
+- Presence of missing data and glitches
+- Accuracy is important
+- low signal-to-noise ratio
+- different or adaptable algorithms of the dataset
+- display the seismic waves
+
+
+Links of resources to learn from
+- https://psa.esa.int/psa/#/pages/home
+- https://www.earthquakescanada.nrcan.gc.ca/index-en.php
+- https://www.earthquakescanada.nrcan.gc.ca/stndon/wf-fo/index-en.php
+- https://www.earthquakescanada.nrcan.gc.ca/info-gen/smeters-smetres/seismograph-en.php
+
+
+
+Info on Seismographs
+- Primary (P) waves (higher frequency travelling in the same direction followed by the energy)
+- Secondary (S) waves (higher amplitudes travelling in the perpendicular direction the energy)
+- time interval dt between P and S waves can be used to get the distance to the origin of the earthquake.
+- Magnitude derived from the amplitude and distance
+- Surface waves (Rayleigh waves) are caused by P and S waves hitting the earth's surface
+- Surface waves attenuate more slowly than P and S waves -- > largest waves on long period seismograms
+
+What waves look like in seismographs
+https://www.earthquakescanada.nrcan.gc.ca/info-gen/smeters-smetres/seismicwaves-en.php
+https://www.mtu.edu/geo/community/seismology/learn/seismology-study/
+
+
+typical for an earthquake signal to have very strong signal in a short time at arrival
