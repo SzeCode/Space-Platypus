@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>e67d16bc-eb4d-42cb-8197-c2bc4763adc3</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Demo.py</StartupFile>
+    <StartupFile>NN_Module.py</StartupFile>
     <SearchPath>data</SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
@@ -21,6 +21,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Demo.py" />
+    <Compile Include="NN_Module.py" />
     <Compile Include="STALTA.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
