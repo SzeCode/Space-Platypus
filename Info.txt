@@ -9,6 +9,7 @@ Algorithms to look into
 - machine learning techniques
 - high-pass filters
 - Fourier spectrum analysis
+	- Could use the Fourier spectrum to determine the noise frequency so that we subtract it from the data.
 
 
 Considerations:
