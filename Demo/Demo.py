@@ -6,7 +6,6 @@ from datetime import datetime, timedelta # Date time manipulation
 import matplotlib.pyplot as plt # Matlab plotting library
 import os
 
-
 cat_directory = './data/lunar/training/catalogs/' # File directory
 cat_file = cat_directory + 'apollo12_catalog_GradeA_final.csv' # File name 
 cat = pd.read_csv(cat_file)
