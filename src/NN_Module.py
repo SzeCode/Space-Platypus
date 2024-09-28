@@ -13,6 +13,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as scipint
 
+from NN_functions import init_model
+from NN_functions import compute_loss
+from NN_functions import get_grad
+
+
 
 # To be replaced by Earthquake data
 # Lorenz System function definition
@@ -87,49 +92,8 @@ xnforward.append(tJump[0:500])
 
 input("Press Enter to continue...")
 
-# Initializes the neural network model
-def init_model(num_hidden_layers = 10, num_neurons_per_layer = 100):
 
-    model = tf.keras.Sequential()
-
-    # Input is (x,y,z,rho)
-    model.add(tf.keras.Input(3))
-
-    for _ in range(num_hidden_layers):
-        #adds the number of layer at each _ hidden layers
-        model.add(tf.keras.layers.Dense(num_neurons_per_layer,
-            activation=tf.keras.activations.get('relu'), 
-            kernel_initializer='glorot_normal'))
-
-
-    # Output is (t)
-    model.add(tf.keras.layers.Dense(1))
-
-    return model
-
-def compute_loss(model, xnforward):
-
-    loss = 0
-    tpred = model(xnforward[0])
-    xnp1 = xnforward[1] 
-
-    loss += tf.reduce_mean(tf.square(tpred-xnp1))
-
-    return loss
-
-def get_grad(model, xnforward):
-
-    with tf.GradientTape(persistent=True) as tape:
-        # This tape is for derivatives with respect to trainable vriables.
-        tape.watch(model.trainable_variables)
-        loss = compute_loss(model, xnforward)#, tJump, steps)
-
-    g = tape.gradient(loss, model.trainable_variables)
-    del tape
-
-    return loss, g
-
-# get neural network model
+# Create neural network model
 num_hidden_layers = 10
 num_neurons_per_layer = 100
 model = init_model(num_hidden_layers,num_neurons_per_layer) 

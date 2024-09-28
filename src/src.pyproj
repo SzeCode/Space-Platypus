@@ -2,14 +2,15 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>e67d16bc-eb4d-42cb-8197-c2bc4763adc3</ProjectGuid>
+    <ProjectGuid>529b23fc-d9a5-41b8-820c-3b300c01d7e5</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Demo.py</StartupFile>
-    <SearchPath>data</SearchPath>
+    <StartupFile>NN_Module.py</StartupFile>
+    <SearchPath>
+    </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
     <OutputPath>.</OutputPath>
-    <Name>Demo</Name>
-    <RootNamespace>Demo</RootNamespace>
+    <Name>src</Name>
+    <RootNamespace>src</RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DebugSymbols>true</DebugSymbols>
@@ -20,8 +21,9 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Demo.py" />
-    <Compile Include="STALTA.py" />
+    <Compile Include="main.py" />
+    <Compile Include="NN_functions.py" />
+    <Compile Include="NN_Module.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
