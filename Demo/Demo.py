@@ -86,7 +86,7 @@ ax.set_ylabel('Velocity (m/s)')
 ax.set_xlabel('Time (s)')
 ax.set_title(f'{test_filename}',fontweight='bold')
 
-#plt.show()
+plt.show()
 
 
 # Filtering Trace using Band pass filter

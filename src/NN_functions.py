@@ -9,12 +9,12 @@ import matplotlib.pyplot as plt
 import scipy.integrate as scipint
 
 # Initializes the neural network model
-def init_model(num_hidden_layers = 10, num_neurons_per_layer = 100):
+def init_model(num_input,num_hidden_layers = 10, num_neurons_per_layer = 100):
 
     model = tf.keras.Sequential()
 
     # Input is (x,y,z,rho)
-    model.add(tf.keras.Input(3))
+    model.add(tf.keras.Input(num_input))
 
     for _ in range(num_hidden_layers):
         #adds the number of layer at each _ hidden layers
@@ -28,22 +28,22 @@ def init_model(num_hidden_layers = 10, num_neurons_per_layer = 100):
 
     return model
 
-def compute_loss(model, xnforward):
+def compute_loss(model, data_input, desired_output):
 
     loss = 0
-    tpred = model(xnforward[0])
-    xnp1 = xnforward[1] 
+    tpred = model(data_input)
+    xnp1 = desired_output 
 
     loss += tf.reduce_mean(tf.square(tpred-xnp1))
 
     return loss
 
-def get_grad(model, xnforward):
+def get_grad(model, data_input, desired_output):
 
     with tf.GradientTape(persistent=True) as tape:
         # This tape is for derivatives with respect to trainable vriables.
         tape.watch(model.trainable_variables)
-        loss = compute_loss(model, xnforward)#, tJump, steps)
+        loss = compute_loss(model, data_input, desired_output)#, tJump, steps)
 
     g = tape.gradient(loss, model.trainable_variables)
     del tape

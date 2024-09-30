@@ -87,16 +87,23 @@ plt.ylabel('$t$', fontsize = 20)
 #------ Begin Forecastiong using neural networks with the Lorenz Data
 xnforward = [] #initialize matrix for training data
 
-xnforward.append(sol_rho28[0:500,:])
-xnforward.append(tJump[0:500])
+#xnforward.append(sol_rho28[0:500,:])
+#xnforward.append(tJump[0:500])
 
+data_input = sol_rho28[0:500,:]
+desired_output = tJump[0:500]
+
+print(np.shape(data_input)[1])
 input("Press Enter to continue...")
 
 
 # Create neural network model
 num_hidden_layers = 10
 num_neurons_per_layer = 100
-model = init_model(num_hidden_layers,num_neurons_per_layer) 
+model = init_model(np.shape(data_input)[1],num_hidden_layers,num_neurons_per_layer) 
+
+print(data_input)
+print(model(data_input))
 
 # Learning rate chosen as decremental steps
 lr = tf.keras.optimizers.schedules.PiecewiseConstantDecay([1000,3000,8000], [1e-2,1e-3,1e-4,1e-5])
@@ -113,7 +120,7 @@ steps = 1
 @tf.function
 def train_step():
     # Compute current loss and gradient w.r.t. parameters.
-    loss, grad_theta = get_grad(model, xnforward)
+    loss, grad_theta = get_grad(model, data_input, desired_output)
 
     # Perform gradient descent step
     optim.apply_gradients(zip(grad_theta, model.trainable_variables))
