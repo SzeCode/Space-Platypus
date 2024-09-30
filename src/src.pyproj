@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>529b23fc-d9a5-41b8-820c-3b300c01d7e5</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>NN_Module.py</StartupFile>
+    <StartupFile>NN_Module test.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -23,6 +23,7 @@
   <ItemGroup>
     <Compile Include="main.py" />
     <Compile Include="NN_functions.py" />
+    <Compile Include="NN_Module test.py" />
     <Compile Include="NN_Module.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
