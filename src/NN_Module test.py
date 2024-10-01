@@ -3,6 +3,9 @@
 # Alg adapted from https://github.com/jbramburger/DataDrivenDynSyst 
 #   Learning Dynamics with Neural Networks\Forecast.ipynb
 
+## TO DO: If very large loss persist, try having 2 inputs (time and signal) with 
+#  one output (1 or 0) for arrival true or false
+
 import os
 from string import printable
 from tkinter import END
@@ -32,7 +35,8 @@ cat = pd.read_csv(cat_file)
 
 
 # Get data and arrival times from each of the rows in the catalog
-for i in range(0,6):
+ndata = 10
+for i in range(0,ndata):
     
     row = cat.iloc[i] # from pandas: get 6th row in file 'cat' (iloc = ith location)
 
@@ -61,12 +65,21 @@ for i in range(0,6):
     print(arrival)
 
     # Get range of data to learn. 
-    time_before_arrival = 5000 # [s]
-    time_after_arrival = 5000  # [s]
+    time_before_arrival = 1000 # [s]
+    time_after_arrival = 1000  # [s]
     arrival_index = np.where(tr_times_d >= arrival)[0][0]
-    ## TO DO: CHECK FOR OUT OF BOUNDS
+    
     start_signal = arrival_index - round(st[0].stats.sampling_rate*time_before_arrival)
     end_signal = arrival_index + round(st[0].stats.sampling_rate*time_after_arrival)
+
+    ## Correct for out of bounds
+    if start_signal < 0:
+        end_signal = end_signal - start_signal
+        start_signal = 0
+    if end_signal >= len(tr_times_d):
+        start_signal = start_signal - (end_signal - (len(tr_times_d) - 1))
+        end_signal = len(tr_times_d) - 1
+
 
     # Keep same amount of elements
     tr_times = tr_times_d[start_signal:end_signal]
@@ -99,8 +112,8 @@ for i in range(0,6):
 
     # initialize matrices for training data
     if i == 0:
-        Array_training = np.zeros((6,np.shape(tr_data)[0])) # Learning data
-        desired_output = np.zeros((6,1))                    # Desired outcome
+        Array_training = np.zeros((ndata,np.shape(tr_data)[0])) # Learning data
+        desired_output = np.zeros((ndata,1))                    # Desired outcome
     else:
         Array_training[i,:] = tr_data
         desired_output[i,:] = arrival
@@ -118,7 +131,7 @@ input("Press Enter to continue...")
 
 #------ Creation of neural network model
 
-num_hidden_layers = 10
+num_hidden_layers = 15
 num_neurons_per_layer = 100
 model = init_model(input_size,num_hidden_layers,num_neurons_per_layer) 
 
@@ -126,7 +139,7 @@ model = init_model(input_size,num_hidden_layers,num_neurons_per_layer)
 #print(model(Array_training))
 
 # Learning rate chosen as decremental steps
-lr = tf.keras.optimizers.schedules.PiecewiseConstantDecay([1000,3000,8000], [1e-2,1e-3,1e-4,1e-5])
+lr = tf.keras.optimizers.schedules.PiecewiseConstantDecay([15000,160000,17000], [0.1,1e-2,1e-3,1e-4])
 
 optim = tf.keras.optimizers.Adam(learning_rate=lr)
 
