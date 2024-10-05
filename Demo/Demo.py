@@ -6,8 +6,7 @@ from datetime import datetime, timedelta # Date time manipulation
 import matplotlib.pyplot as plt # Matlab plotting library
 import os
 
-
-cat_directory = './data/lunar/training/catalogs/' # File directory
+cat_directory = '../data/lunar/training/catalogs/' # File directory
 cat_file = cat_directory + 'apollo12_catalog_GradeA_final.csv' # File name 
 cat = pd.read_csv(cat_file)
 
@@ -29,7 +28,7 @@ print(test_filename)
 
 
 # Find file containing signal read csv
-data_directory = './data/lunar/training/data/S12_GradeA/'
+data_directory = '../data/lunar/training/data/S12_GradeA/'
 csv_file = f'{data_directory}{test_filename}.csv'
 
 data_cat = pd.read_csv(csv_file)
@@ -58,7 +57,7 @@ ax.legend(handles=[arrival_line])
 
 # Another method (Recommended due to speed)
 # Find file containing signal read miniseed (time series data)
-data_directory = './data/lunar/training/data/S12_GradeA/'
+data_directory = '../data/lunar/training/data/S12_GradeA/'
 mseed_file = f'{data_directory}{test_filename}.mseed'
 st = read(mseed_file)
 print(st)
@@ -87,7 +86,7 @@ ax.set_ylabel('Velocity (m/s)')
 ax.set_xlabel('Time (s)')
 ax.set_title(f'{test_filename}',fontweight='bold')
 
-#plt.show()
+plt.show()
 
 
 # Filtering Trace using Band pass filter
