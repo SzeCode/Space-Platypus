@@ -8,6 +8,37 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as scipint
 import obspy.signal
+from datetime import datetime, timedelta # Date time manipulation
+from obspy import read # Processing Seismological data
+
+def find_Max_Signal(ndata, cat):
+    DataSize = np.zeros(ndata)
+    for i in range(0,ndata):
+        
+        row = cat.iloc[i] # from pandas: get 6th row in file 'cat' (iloc = ith location)
+
+        # Absolute arrival time (start time of seismic event)
+        arrival_time = datetime.strptime(row['time_abs(%Y-%m-%dT%H:%M:%S.%f)'],'%Y-%m-%dT%H:%M:%S.%f')
+
+        # Relative time (sec)
+        arrival_time_rel = row['time_rel(sec)']
+
+        # Filename of 6th row
+        test_filename = row.filename
+
+        # Find file containing signal read mseed
+        data_directory = '../data/lunar/training/data/S12_GradeA/'
+        mseed_file = f'{data_directory}{test_filename}.mseed'
+        st = read(mseed_file)
+
+        # Get data and time
+        tr = st.traces[0].copy()
+        tr_data_d = tr.data     # signal
+        DataSize[i] = max(abs(tr_data_d))
+
+    MaxVel = max(DataSize)    
+        
+    return MaxVel
 
 def Test_Filter(st_filt):
 
@@ -15,18 +46,23 @@ def Test_Filter(st_filt):
     maxfreq = 1.0
 
     #st_filt = st.copy()
-    st_filt.filter('bandpass',freqmin=minfreq,freqmax=maxfreq,corners=1, zerophase=True)
-
     tr_filt = st_filt.traces[0].copy()
-    tr_times_filt = tr_filt.times()
-    tr_data_filt = tr_filt.data
+    tr_times = tr_filt.times()
+    tr_data = tr_filt.data
+    
+    #.filter('bandpass',freqmin=minfreq,freqmax=maxfreq,corners=1, zerophase=True)
+    tr_data_filt = np.zeros(1,len(tr_data))
+    tr_data_filt[0,1] = tr_data[0];
+    for i in range(0,len(tr_data)):
+        tr_data_filt[0,i+1] = tr_data_filt[0,i]*0.7 + 0.3*tr_data[i]
 
 
 
-    return tr_times_filt, tr_data_filt
+
+    return tr_data_filt
     
 
-def Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arrival):
+def Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arrival, Fs):
 
     nRows = int(signal_size-Window_Size)
     Array_trainingSingleData = np.zeros((nRows,Window_Size))
@@ -57,12 +93,13 @@ def Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arr
 
         k = k + 1
     
-    # fig,ax = plt.subplots(1,1,figsize=(10,3))
-    # plt.plot(tr_times[0:signal_size-Window_Size],tr_data[0:signal_size-Window_Size])
-    # plt.plot(tr_times[0:signal_size-Window_Size],Array_desiredwindowOutput[:,0])
-    # #ax.plot(tr_times,tr_data)
-    # ax.axvline(x = arrival, color='red',label='Rel.Arrival')
-    # plt.show()
+    fig,ax = plt.subplots(1,1,figsize=(10,3))
+    plt.plot(tr_times[0:signal_size-Window_Size],tr_data[0:signal_size-Window_Size])
+    plt.plot(tr_times[0:signal_size-Window_Size],Array_desiredwindowOutput[:,0])
+    #ax.plot(tr_times,tr_data)
+    ax.axvline(x = arrival, color='red',label='Rel.Arrival')
+    ax.axvline(x = arrival+Window_Size/Fs, color='blue',label='Rel.Arrival')
+    plt.show()
 
     # size [batch_size, sequence_length, feature_size] required    
     Array_trainingSingleData = Array_trainingSingleData.reshape((Array_trainingSingleData.shape[0], Array_trainingSingleData.shape[1], 1))  # Reshape to [batch_size, sequence_length, feature_size]

@@ -10,7 +10,7 @@ from tkinter import END
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
 import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping
+#from tensorflow.keras.callbacks import EarlyStopping
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,7 +22,7 @@ from datetime import datetime, timedelta # Date time manipulation
 
 from time import time # add time function from the time package
 
-from NN_functions import init_model_RNN, init_model_Binary, init_model, compute_loss, get_grad,Create_Sliding_Window_Array, Test_Filter
+from NN_functions import init_model_RNN, init_model_Binary, init_model, compute_loss, get_grad,Create_Sliding_Window_Array, Test_Filter, find_Max_Signal
 import random
 
 
@@ -34,6 +34,7 @@ cat = pd.read_csv(cat_file)
 
 # Get data and arrival times from the catalog
 ndata = 5                                                              # Total Number of datasets
+MaxV = find_Max_Signal(ndata, cat)
 for i in range(0,ndata):
 
     row = cat.iloc[i]                                                  # from pandas: get 6th row in file 'cat' (iloc = ith location)
@@ -59,8 +60,7 @@ for i in range(0,ndata):
     #plt.plot(tr_times_df, tr_data_df)
     #plt.show()
     
-
-    tr_data_d = (tr_data_d)/(max(abs(tr_data_d)))                     # Normalize the data between -1 and 1
+    tr_data_d = (tr_data_d)/(MaxV)                     # Normalize the data between -1 and 1
 
     # Get Relative time of arrival
     startime = tr.stats.starttime.datetime
@@ -92,7 +92,7 @@ for i in range(0,ndata):
     # Sliding window array creation
     Window_Size = 200
     signal_size = len(tr_data)
-    nRows, Array_trainingSingleData, Array_desiredwindowOutput, arrival_index = Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arrival)
+    nRows, Array_trainingSingleData, Array_desiredwindowOutput, arrival_index = Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arrival, st[0].stats.sampling_rate)
  
 
     # appending all dataset into one array
@@ -137,11 +137,12 @@ input("Press Enter to continue...")
 
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
 
-early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=8, restore_best_weights=True)
+#early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_accuracy', patience=10, restore_best_weights=True)
+#lr_scheduler = tf.keras.callbacks.ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, min_lr=1e-6)
 
 for b in range(0,ndata-1):
-    model.fit(Array_training[b], desired_output[b], epochs=20, batch_size=10, validation_data=(Array_training[b+1], desired_output[b+1]), callbacks=[early_stopping])
-    print('Array %d trained', b)
+    model.fit(Array_training[b], desired_output[b], epochs=20, batch_size=10, validation_data=(Array_training[b+1], desired_output[b+1]))
+    print('Array trained', b)
 
 
 # test_loss = model.evaluate(Array_training[0], desired_output[0])
