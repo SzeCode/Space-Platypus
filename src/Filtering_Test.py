@@ -7,9 +7,15 @@ import matplotlib.pyplot as plt # Matlab plotting library
 from scipy import signal
 import os
 
+#Old Version 
+
 cat_directory = '../data/lunar/training/catalogs/' # File directory
 cat_file = cat_directory + 'apollo12_catalog_GradeA_final.csv' # File name 
-cat = pd.read_csv(cat_file)
+try:   #Error Handling                      
+    cat = pd.read_csv(cat_file)
+except FileNotFoundError:
+    print(f"File not found: {cat_file}")
+
 
 print(cat)
 
@@ -89,7 +95,3 @@ cbar = plt.colorbar(vals, ax=ax2, orientation='horizontal')
 cbar.set_label('Power ((m/s)^2/sqrt(Hz))', fontweight='bold')
 
 plt.show()
-
-
-
-
