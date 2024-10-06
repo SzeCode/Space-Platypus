@@ -13,7 +13,7 @@ cat = pd.read_csv(cat_file)
 
 print(cat)
 
-row = cat.iloc[10] # from pandas: get 6th row in file 'cat' (iloc = ith location)
+row = cat.iloc[1] # from pandas: get 6th row in file 'cat' (iloc = ith location)
 
 # Absolute arrival time (start time of seismic event)
 arrival_time = datetime.strptime(row['time_abs(%Y-%m-%dT%H:%M:%S.%f)'],'%Y-%m-%dT%H:%M:%S.%f')
