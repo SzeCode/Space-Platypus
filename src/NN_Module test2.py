@@ -34,7 +34,7 @@ cat = pd.read_csv(cat_file)
 
 # Get data and arrival times from the catalog
 ndata = 5                                                              # Total Number of datasets
-MaxV = find_Max_Signal(ndata, cat)
+MaxV = find_Max_Signal(ndata, cat)                                     # Max velocity across all data
 for i in range(0,ndata):
 
     row = cat.iloc[i]                                                  # from pandas: get 6th row in file 'cat' (iloc = ith location)
@@ -54,17 +54,18 @@ for i in range(0,ndata):
     tr_times_d = tr.times()                                           # time              [s]
     tr_data_d = tr.data                                               # signal (velocity) [m/s]
     
-    #tr_times_df, tr_data_df = Test_Filter(st)
+    # tr_data_df = Test_Filter(st, 0.7, 0.3)
 
-    #plt.plot(tr_times_d, tr_data_d)
-    #plt.plot(tr_times_df, tr_data_df)
-    #plt.show()
-    
+    # plt.plot(tr_times_d, tr_data_d)
+    # plt.plot(tr_times_d, tr_data_df)
+    # plt.show()
+    MaxV = max(abs(tr_data_d))
     tr_data_d = (tr_data_d)/(MaxV)                     # Normalize the data between -1 and 1
+    
 
     # Get Relative time of arrival
     startime = tr.stats.starttime.datetime
-    arrival = (arrival_time-startime).total_seconds()
+    arrival = (arrival_time-startime).total_seconds()+90
 
     # Isolate the large dataset into a smaller manageable signal around the arrival time
     # The arrival time index is at random places in the signal to avoid model biases 
@@ -127,9 +128,9 @@ input_size = Window_Size
 
 num_hiddenDense_layers = 20
 num_Denseneurons_per_layer = 400
-
-
 model = init_model_Binary(input_size, num_hiddenDense_layers, num_Denseneurons_per_layer) 
+
+
 print('model initialized')
 model.summary()
 input("Press Enter to continue...")
@@ -149,19 +150,26 @@ for b in range(0,ndata-1):
 predictions = model.predict(Array_training[ndata-1])
 #predictions1 = model.predict(Array_training[1])
 
+# Post-Processing Predictions
+# Window_SizeP = 20
+# halfWindow = int(Window_SizeP/2)
+# predictionsProcessed = predictions
+# for h in range(int(halfWindow),int(len(predictions)-halfWindow)):
+#     predictionsProcessed[h] = round(np.mean(predictions[h-halfWindow:h+halfWindow]))
+
+
 fig,ax = plt.subplots(1,1,figsize=(10,3))
 plt.plot(tr_times_combined[ndata-1][0:nRows_combined[0]],tr_data_combined[ndata-1][0:nRows_combined[0]])
 plt.plot(tr_times_combined[ndata-1][0:nRows_combined[0]],predictions[:,0])
 ax.axvline(x = arrival_combined[ndata-1], color='red',label='Rel.Arrival')
-plt.show()
+
 
 print("\n")
 print("Desired: ", arrival_combined[ndata-1])
 print("Prediction is: ",tr_times_combined[ndata-1][np.where(np.abs(predictions-1) < 1e-2)[0][0]])
 
 
-
-
+plt.show()
 input("Press Enter to continue...")
 # Save model
 

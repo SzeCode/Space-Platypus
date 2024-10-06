@@ -40,7 +40,7 @@ def find_Max_Signal(ndata, cat):
         
     return MaxVel
 
-def Test_Filter(st_filt):
+def Test_Filter(st_filt, a, b):
 
     minfreq = 0.5
     maxfreq = 1.0
@@ -51,13 +51,10 @@ def Test_Filter(st_filt):
     tr_data = tr_filt.data
     
     #.filter('bandpass',freqmin=minfreq,freqmax=maxfreq,corners=1, zerophase=True)
-    tr_data_filt = np.zeros(1,len(tr_data))
-    tr_data_filt[0,1] = tr_data[0];
-    for i in range(0,len(tr_data)):
-        tr_data_filt[0,i+1] = tr_data_filt[0,i]*0.7 + 0.3*tr_data[i]
-
-
-
+    tr_data_filt = np.zeros((len(tr_data),1))
+    tr_data_filt[0,0] = tr_data[0]
+    for i in range(0,len(tr_data)-1):
+        tr_data_filt[i+1,0] = tr_data_filt[i,0]*a + b*tr_data[i]
 
     return tr_data_filt
     
@@ -119,6 +116,8 @@ def init_model(num_input, num_hidden_layers = 10, num_neurons_per_layer = 100):
     # Input is (x,y,z,rho)
     model.add(tf.keras.Input(num_input))
 
+
+
     for _ in range(num_hidden_layers):
         #adds the number of layer at each _ hidden layers
         model.add(tf.keras.layers.Dense(num_neurons_per_layer,
@@ -137,7 +136,7 @@ def init_model_Binary(num_input, num_hidden_layers = 10, num_neurons_per_layer =
 
     # Input elements
     model.add(tf.keras.Input(num_input))
-
+    
     #model.add(tf.keras.layers.Conv1D(64, kernel_size=3, activation='relu', input_shape=(num_input, 1)))
     #model.add(tf.keras.layers.MaxPooling1D(pool_size=2))
     #model.add(tf.keras.layers.LSTM(32, return_sequences=False))
@@ -147,6 +146,16 @@ def init_model_Binary(num_input, num_hidden_layers = 10, num_neurons_per_layer =
         model.add(tf.keras.layers.Dense(num_neurons_per_layer,
             activation=tf.keras.activations.get('relu'), 
             kernel_initializer='glorot_normal'))
+
+    model.add(tf.keras.layers.Dense(128,
+            activation=tf.keras.activations.get('relu'), 
+            kernel_initializer='glorot_normal'))
+    model.add(tf.keras.layers.Dense(64,
+        activation=tf.keras.activations.get('relu'), 
+        kernel_initializer='glorot_normal'))
+    model.add(tf.keras.layers.Dense(32,
+        activation=tf.keras.activations.get('relu'), 
+        kernel_initializer='glorot_normal'))
 
     # Output
     model.add(tf.keras.layers.Dense(1, activation = 'sigmoid'))
