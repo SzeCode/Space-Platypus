@@ -13,7 +13,7 @@ cat = pd.read_csv(cat_file)
 
 print(cat)
 
-row = cat.iloc[6] # from pandas: get 6th row in file 'cat' (iloc = ith location)
+row = cat.iloc[10] # from pandas: get 6th row in file 'cat' (iloc = ith location)
 
 # Absolute arrival time (start time of seismic event)
 arrival_time = datetime.strptime(row['time_abs(%Y-%m-%dT%H:%M:%S.%f)'],'%Y-%m-%dT%H:%M:%S.%f')
@@ -45,17 +45,14 @@ startime = tr.stats.starttime.datetime
 arrival = (arrival_time-startime).total_seconds()
 print(arrival)
 
-
-
-
 from obspy.signal.invsim import cosine_taper
 from obspy.signal.filter import highpass
 from obspy.signal.trigger import classic_sta_lta, plot_trigger, trigger_onset
 
 df = tr.stats.sampling_rate
 
-sta_len = 120 # seconds
-lta_len = 600 # seconds
+sta_len = 300 # seconds
+lta_len = 10000 # seconds
 
 # Characteristic Function (ratio of amplitudes between short_term and long term)
 cft = classic_sta_lta(tr_data, int(sta_len * df), int(lta_len * df))
@@ -70,8 +67,8 @@ ax.set_ylabel('Characteristic function')
 
 
 # Thresholds on the characteristic function for start and finish quakes
-thr_on = 4
-thr_off = 1.5
+thr_on = 10
+thr_off = 0.5
 
 # Array of indices with trigger on and trigger off 
 on_off = np.array(trigger_onset(cft, thr_on, thr_off))
