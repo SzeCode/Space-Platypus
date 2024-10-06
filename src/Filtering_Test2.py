@@ -56,30 +56,36 @@ if cat is not None:
 
     # Loop through each row in the catalog
     for idx, row in cat.iterrows():
-        print(f"Processing event {idx+1}/{len(cat)}...")
+        try:
+            print(f"Processing event {idx+1}/{len(cat)}...")
 
-        # Parse arrival time
-        arrival_time = datetime.strptime(row['time_abs(%Y-%m-%dT%H:%M:%S.%f)'], '%Y-%m-%dT%H:%M:%S.%f')
-        arrival_time_rel = row['time_rel(sec)']
-        test_filename = row.filename
+            # Parse arrival time
+            arrival_time = datetime.strptime(row['time_abs(%Y-%m-%dT%H:%M:%S.%f)'], '%Y-%m-%dT%H:%M:%S.%f')
+            arrival_time_rel = row['time_rel(sec)']
+            test_filename = row.filename
 
-        # Load data
-        mseed_file = f'{data_directory}{test_filename}.mseed'
-        st = read(mseed_file)
+            # Load data
+            mseed_file = f'{data_directory}{test_filename}.mseed'
+            st = read(mseed_file)  # This may raise a FileNotFoundError
 
-        # Filter signal
-        st_filt = filter_signal(st)
-        tr_filt = st_filt.traces[0]
-        tr_times_filt = tr_filt.times()
-        tr_data_filt = tr_filt.data
+            # Filter signal
+            st_filt = filter_signal(st)
+            tr_filt = st_filt.traces[0]
+            tr_times_filt = tr_filt.times()
+            tr_data_filt = tr_filt.data
 
-        # Spectrogram
-        f, t, sxx = signal.spectrogram(tr_data_filt, tr_filt.stats.sampling_rate)
+            # Spectrogram
+            f, t, sxx = signal.spectrogram(tr_data_filt, tr_filt.stats.sampling_rate)
 
-        # Plot data
-        startime = tr_filt.stats.starttime.datetime
-        arrival = (arrival_time - startime).total_seconds()
-        plot_filtered_data(tr_times_filt, tr_data_filt, arrival, t, f, sxx)
+            # Plot data
+            startime = tr_filt.stats.starttime.datetime
+            arrival = (arrival_time - startime).total_seconds()
+            plot_filtered_data(tr_times_filt, tr_data_filt, arrival, t, f, sxx)
+
+        except FileNotFoundError as e:
+            print(f"File not found for event {idx+1}: {test_filename}.mseed")
+            continue  # Skip to the next event
+
 
 
 
