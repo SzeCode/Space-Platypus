@@ -6,13 +6,14 @@ from datetime import datetime, timedelta # Date time manipulation
 import matplotlib.pyplot as plt # Matlab plotting library
 import os
 
-cat_directory = '../data/lunar/training/catalogs/' # File directory
+#cat_directory = 'C:/Users/Alexandr/Documents/GitHub/Space-Platypus/data/lunar/training/catalogs/' # File directory
+cat_directory = './data/lunar/training/catalogs/' # File directory
 cat_file = cat_directory + 'apollo12_catalog_GradeA_final.csv' # File name 
 cat = pd.read_csv(cat_file)
 
 print(cat)
 
-row = cat.iloc[6] # from pandas: get 6th row in file 'cat' (iloc = ith location)
+row = cat.iloc[8] # from pandas: get 6th row in file 'cat' (iloc = ith location)
 
 # Absolute arrival time (start time of seismic event)
 arrival_time = datetime.strptime(row['time_abs(%Y-%m-%dT%H:%M:%S.%f)'],'%Y-%m-%dT%H:%M:%S.%f')
@@ -28,7 +29,7 @@ print(test_filename)
 
 
 # Find file containing signal read csv
-data_directory = '../data/lunar/training/data/S12_GradeA/'
+data_directory = './data/lunar/training/data/S12_GradeA/'
 csv_file = f'{data_directory}{test_filename}.csv'
 
 data_cat = pd.read_csv(csv_file)
@@ -57,7 +58,7 @@ ax.legend(handles=[arrival_line])
 
 # Another method (Recommended due to speed)
 # Find file containing signal read miniseed (time series data)
-data_directory = '../data/lunar/training/data/S12_GradeA/'
+data_directory = './data/lunar/training/data/S12_GradeA/'
 mseed_file = f'{data_directory}{test_filename}.mseed'
 st = read(mseed_file)
 print(st)

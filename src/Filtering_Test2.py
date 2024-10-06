@@ -47,12 +47,12 @@ def plot_filtered_data(tr_times_filt, tr_data_filt, arrival, t, f, sxx):
     plt.show()
 
 # Main processing
-cat_directory = '../data/lunar/training/catalogs/'
+cat_directory = './data/lunar/training/catalogs/'
 cat_file = cat_directory + 'apollo12_catalog_GradeA_final.csv'
 cat = load_catalog(cat_file)
 
 if cat is not None:
-    data_directory = '../data/lunar/training/data/S12_GradeA/'
+    data_directory = './data/lunar/training/data/S12_GradeA/'
 
     # Loop through each row in the catalog
     for idx, row in cat.iterrows():
