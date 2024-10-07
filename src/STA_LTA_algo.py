@@ -1,3 +1,12 @@
+##Input to STA algo is data filtered. 
+##The algorithm should create the characteristic function so you can pick a threshold
+##that allows you to get the arrival and end times of the quake
+##Need to find a threshold that will work for every signal
+##Make the threshold adaptable to different types of signals 
+##Try out with different types of data
+##Try different algorithms to see what gives best results based on criteria(tbd)
+##to get the best and most accurate start and end times. 
+
 ## Code From demo for the SLA/LTA algorithm
 
 import numpy as np # For numerical computations
@@ -6,6 +15,7 @@ from obspy import read # Processing Seismological data
 from datetime import datetime, timedelta # Date time manipulation
 import matplotlib.pyplot as plt # Matlab plotting library
 import os
+from scipy.signal import find_peaks
 
 cat_directory = './data/lunar/training/catalogs/' # File directory
 cat_file = cat_directory + 'apollo12_catalog_GradeA_final.csv' # File name 
@@ -13,7 +23,7 @@ cat = pd.read_csv(cat_file)
 
 print(cat)
 
-row = cat.iloc[1] # from pandas: get 6th row in file 'cat' (iloc = ith location)
+row = cat.iloc[0] # from pandas: get 6th row in file 'cat' (iloc = ith location)
 
 # Absolute arrival time (start time of seismic event)
 arrival_time = datetime.strptime(row['time_abs(%Y-%m-%dT%H:%M:%S.%f)'],'%Y-%m-%dT%H:%M:%S.%f')
@@ -51,7 +61,15 @@ from obspy.signal.trigger import classic_sta_lta, plot_trigger, trigger_onset
 
 df = tr.stats.sampling_rate
 
-sta_len = 300 # seconds
+## STA duration must be longer than a few periods of expected seismic signal
+##STA duration must be shorter than the shortest events we expect to capture
+##Make a algorithm that will detect if the data has a lot of spikes by comparing
+##the peaks of data to the values next to them
+##If data has a lot of spikes then increase the STA window, this allows it to be less
+##Sensitive to instrumental spikes
+sta_len = 1000 # seconds
+
+##last longer than a few 'periods' of typically irregular seismic noise fluctuations
 lta_len = 10000 # seconds
 
 # Characteristic Function (ratio of amplitudes between short_term and long term)
@@ -64,10 +82,8 @@ ax.set_xlim([min(tr_times),max(tr_times)])
 ax.set_xlabel('Time (s)')
 ax.set_ylabel('Characteristic function')
 
-
-
 # Thresholds on the characteristic function for start and finish quakes
-thr_on = 10
+thr_on = 5
 thr_off = 0.5
 
 # Array of indices with trigger on and trigger off 
