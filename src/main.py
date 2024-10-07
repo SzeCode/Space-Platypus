@@ -1,22 +1,26 @@
 import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
-import tensorflow as tf
-import numpy as np
-import matplotlib.pyplot as plt
-import scipy.integrate as scipint
-import pandas as pd  # for data manipulation
-from obspy import read  # Processing Seismological data
 from datetime import datetime, timedelta  # Date time manipulation
 from time import time  # add time function from the time package
-from NN_functions import reformInputData
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd  # for data manipulation
+import scipy.integrate as scipint
+import tensorflow as tf
+from keras.utils import plot_model
+from obspy import read  # Processing Seismological data
 
 from Data_Analysis_using_avg_fn import detect_peaks
+from NN_functions import reformInputData
 
 Data_FileNum = 11
 
 
 model = tf.keras.models.load_model("models/Model4_Arrival_Time")
+print(model.summary())
+# plot_model(model, to_file="keras_model_chart.png")
 
 # Directory for the catalogs
 cat_directory = "../data/lunar/training/catalogs/"  # File directory
@@ -105,7 +109,7 @@ plt.axvline(x=nn_prediction, label="Neural Network prediction", color="red")
 plt.legend()
 plt.xlabel("Time (s)")
 plt.ylabel("Velocity (m/s)")
-plt.title("Predicted Earthquake Arrival Time")
+plt.title("Predicted Moonquake Arrival Time")
 plt.show()
 
 input("Press Enter to continue...")
