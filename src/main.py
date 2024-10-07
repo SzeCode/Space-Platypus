@@ -10,8 +10,9 @@ from datetime import datetime, timedelta # Date time manipulation
 from time import time # add time function from the time package
 from NN_functions import reformInputData
 
+from Data_Analysis_using_avg_fn import detect_peaks
 
-Data_FileNum = 7
+Data_FileNum = 11
 
 
 model = tf.keras.models.load_model('models/Model4_Arrival_Time')
@@ -43,9 +44,16 @@ tr_data_d = tr.data                                               # signal (velo
 startime = tr.stats.starttime.datetime
 arrival = (arrival_time-startime).total_seconds()
 
+# -------------------------------------------------------------------------------------------------
+
+top_5_peaks, top_5_heights = detect_peaks(tr_data_d, distance_between_peaks=3000, prominence_threshold=0.5e-8,
+                 gradual_fall_window=500, gradual_fall_threshold=0.5e-8,
+                 sharp_fall_threshold=0.3e-8)
+
+
 # To replace by estimated peaks STALTA
-Est_Arrival = arrival
-nRows, ArraySlidingWindow, tr_times, tr_data = reformInputData(st, tr_times_d, tr_data_d, Est_Arrival, 1200)
+Est_Arrival = tr_times_d[top_5_heights[0]]
+nRows, ArraySlidingWindow, tr_times, tr_data = reformInputData(st, tr_times_d, tr_data_d, Est_Arrival, 1800)
 
 
 predictions = model.predict(ArraySlidingWindow)

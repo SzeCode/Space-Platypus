@@ -24,10 +24,11 @@ def filter_signal(st, minfreq=0.1, maxfreq=1.5):
     return st_filt
 
 # Plotting function
-def plot_filtered_data(tr_times_filt, tr_data_filt, arrival, t, f, sxx):
+def plot_filtered_data(tr_times, tr_data, tr_times_filt, tr_data_filt, arrival, t, f, sxx):
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 10))
 
     # Time series plot
+    ax1.plot(tr_times, tr_data)
     ax1.plot(tr_times_filt, tr_data_filt)
     ax1.axvline(x=arrival, color='red', label='Detection')
     ax1.set_xlim([min(tr_times_filt), max(tr_times_filt)])
@@ -47,12 +48,12 @@ def plot_filtered_data(tr_times_filt, tr_data_filt, arrival, t, f, sxx):
     plt.show()
 
 # Main processing
-cat_directory = './data/lunar/training/catalogs/'
+cat_directory = '../data/lunar/training/catalogs/'
 cat_file = cat_directory + 'apollo12_catalog_GradeA_final.csv'
 cat = load_catalog(cat_file)
 
 if cat is not None:
-    data_directory = './data/lunar/training/data/S12_GradeA/'
+    data_directory = '../data/lunar/training/data/S12_GradeA/'
 
     # Loop through each row in the catalog
     for idx, row in cat.iterrows():
@@ -68,6 +69,11 @@ if cat is not None:
             mseed_file = f'{data_directory}{test_filename}.mseed'
             st = read(mseed_file)  # This may raise a FileNotFoundError
 
+            # Original Data
+            tr = st.traces[0]
+            tr_times = tr.times()
+            tr_data = tr.data
+
             # Filter signal
             st_filt = filter_signal(st)
             tr_filt = st_filt.traces[0]
@@ -80,7 +86,7 @@ if cat is not None:
             # Plot data
             startime = tr_filt.stats.starttime.datetime
             arrival = (arrival_time - startime).total_seconds()
-            plot_filtered_data(tr_times_filt, tr_data_filt, arrival, t, f, sxx)
+            plot_filtered_data(tr_times, tr_data, tr_times_filt, tr_data_filt, arrival, t, f, sxx)
 
         except FileNotFoundError as e:
             print(f"File not found for event {idx+1}: {test_filename}.mseed")
