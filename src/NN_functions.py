@@ -11,6 +11,25 @@ import obspy.signal
 from datetime import datetime, timedelta # Date time manipulation
 from obspy import read # Processing Seismological data
 
+from obspy.signal.invsim import cosine_taper
+from obspy.signal.filter import highpass
+from obspy.signal.trigger import classic_sta_lta, plot_trigger, trigger_onset
+
+import random
+
+def STALTA(tr,tr_data_d):
+    
+    df = tr.stats.sampling_rate
+
+    sta_len = 300 # seconds
+    lta_len = 10000 # seconds
+
+    # Characteristic Function (ratio of amplitudes between short_term and long term)
+    cft = classic_sta_lta(tr_data_d, int(sta_len * df), int(lta_len * df))
+
+    return cft
+
+
 def find_Max_Signal(ndata, cat):
     DataSize = np.zeros(ndata)
     for i in range(0,ndata):
@@ -104,6 +123,69 @@ def Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arr
 
 
     return nRows, Array_trainingSingleData, Array_desiredwindowOutput, arrival_index
+
+def reformInputData(st, tr_times_d, tr_data_d, Est_Arrival, total_signal_time = 1200):
+
+    MaxV = max(abs(tr_data_d))
+    tr_data_d = (tr_data_d)/(MaxV)   
+
+    arrival = Est_Arrival                                          
+    time_before_arrival = random.randrange(200,900)                   # [s]
+    time_after_arrival = total_signal_time - time_before_arrival      # [s]
+    arrival_index = np.where(tr_times_d >= arrival)[0][0]             # Index of tr_times_d containing the arrival time
+    
+    start_signal = arrival_index - round(st[0].stats.sampling_rate*time_before_arrival)
+    end_signal = arrival_index + round(st[0].stats.sampling_rate*time_after_arrival)
+
+    ## Correct for out of bounds. Still maintains total signal time.
+    if start_signal < 0:
+        end_signal = end_signal - start_signal
+        start_signal = 0
+    if end_signal >= len(tr_times_d):
+        start_signal = start_signal - (end_signal - (len(tr_times_d) - 1))
+        end_signal = len(tr_times_d) - 1
+
+    # Keep same amount of elements
+    tr_times = tr_times_d[start_signal:end_signal]
+    tr_data = tr_data_d[start_signal:end_signal]
+
+    
+    # Sliding window array creation
+    Window_Size = 200
+    signal_size = len(tr_data)
+    nRows = int(signal_size-Window_Size)
+    Array_trainingSingleData = np.zeros((nRows,Window_Size))
+    k = 0
+    while k < nRows:
+
+        inputNode = np.zeros((1,Window_Size))
+        inputNodet = np.zeros((1,Window_Size))
+
+        if k+Window_Size >= signal_size:
+            signal_size - k   # = 400
+            inputNode[0,0:signal_size - k] = tr_data[k:signal_size]
+            inputNodet[0,0:signal_size - k] = tr_data[k:signal_size]
+            inputNode[0,signal_size - k+1:Window_Size] = 0
+            inputNodet[0,signal_size - k+1:Window_Size] = 0
+        else:
+            inputNode[0,:] = tr_data[k:k+Window_Size]
+            inputNodet[0,:] = tr_times[k:k+Window_Size]
+
+        Array_trainingSingleData[k,:] = inputNode
+
+        k = k + 1
+    
+    fig,ax = plt.subplots(1,1,figsize=(10,3))
+    plt.plot(tr_times[0:signal_size-Window_Size],tr_data[0:signal_size-Window_Size])
+    #ax.plot(tr_times,tr_data)
+    ax.axvline(x = arrival, color='red',label='Rel.Arrival')
+    plt.show()
+
+    # size [batch_size, sequence_length, feature_size] required    
+    Array_trainingSingleData = Array_trainingSingleData.reshape((Array_trainingSingleData.shape[0], Array_trainingSingleData.shape[1], 1))  # Reshape to [batch_size, sequence_length, feature_size]
+   
+    return nRows, Array_trainingSingleData, tr_times, tr_data
+
 
 
 
