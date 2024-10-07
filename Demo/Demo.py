@@ -140,8 +140,8 @@ from obspy.signal.trigger import classic_sta_lta, plot_trigger, trigger_onset
 
 df = tr.stats.sampling_rate
 
-sta_len = 120 # seconds
-lta_len = 600 # seconds
+sta_len = 300 # seconds
+lta_len = 10000 # seconds
 
 # Characteristic Function (ratio of amplitudes between short_term and long term)
 cft = classic_sta_lta(tr_data, int(sta_len * df), int(lta_len * df))

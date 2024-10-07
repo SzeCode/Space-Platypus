@@ -9,7 +9,7 @@ import os
 
 #Old Version 
 
-cat_directory = './data/lunar/training/catalogs/' # File directory
+cat_directory = '../data/lunar/training/catalogs/' # File directory
 cat_file = cat_directory + 'apollo12_catalog_GradeA_final.csv' # File name 
 try:   #Error Handling                      
     cat = pd.read_csv(cat_file)
@@ -17,7 +17,7 @@ except FileNotFoundError:
     print(f"File not found: {cat_file}")
 
 
-print(cat)
+#print(cat)
 
 row = cat.iloc[6] # from pandas: get 6th row in file 'cat' (iloc = ith location)
 
@@ -36,7 +36,7 @@ print(test_filename)
 
 # Another method (Recommended due to speed)
 # Find file containing signal read miniseed (time series data)
-data_directory = './data/lunar/training/data/S12_GradeA/'
+data_directory = '../data/lunar/training/data/S12_GradeA/'
 mseed_file = f'{data_directory}{test_filename}.mseed'
 st = read(mseed_file)
 

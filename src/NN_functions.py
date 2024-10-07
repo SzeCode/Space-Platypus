@@ -8,25 +8,77 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.integrate as scipint
 import obspy.signal
+from datetime import datetime, timedelta # Date time manipulation
+from obspy import read # Processing Seismological data
 
-def Test_Filter(st_filt):
+from obspy.signal.invsim import cosine_taper
+from obspy.signal.filter import highpass
+from obspy.signal.trigger import classic_sta_lta, plot_trigger, trigger_onset
+
+import random
+
+def STALTA(tr,tr_data_d):
+    
+    df = tr.stats.sampling_rate
+
+    sta_len = 300 # seconds
+    lta_len = 10000 # seconds
+
+    # Characteristic Function (ratio of amplitudes between short_term and long term)
+    cft = classic_sta_lta(tr_data_d, int(sta_len * df), int(lta_len * df))
+
+    return cft
+
+
+def find_Max_Signal(ndata, cat):
+    DataSize = np.zeros(ndata)
+    for i in range(0,ndata):
+        
+        row = cat.iloc[i] # from pandas: get 6th row in file 'cat' (iloc = ith location)
+
+        # Absolute arrival time (start time of seismic event)
+        arrival_time = datetime.strptime(row['time_abs(%Y-%m-%dT%H:%M:%S.%f)'],'%Y-%m-%dT%H:%M:%S.%f')
+
+        # Relative time (sec)
+        arrival_time_rel = row['time_rel(sec)']
+
+        # Filename of 6th row
+        test_filename = row.filename
+
+        # Find file containing signal read mseed
+        data_directory = '../data/lunar/training/data/S12_GradeA/'
+        mseed_file = f'{data_directory}{test_filename}.mseed'
+        st = read(mseed_file)
+
+        # Get data and time
+        tr = st.traces[0].copy()
+        tr_data_d = tr.data     # signal
+        DataSize[i] = max(abs(tr_data_d))
+
+    MaxVel = max(DataSize)    
+        
+    return MaxVel
+
+def Test_Filter(st_filt, a, b):
 
     minfreq = 0.5
     maxfreq = 1.0
 
     #st_filt = st.copy()
-    st_filt.filter('bandpass',freqmin=minfreq,freqmax=maxfreq,corners=1, zerophase=True)
-
     tr_filt = st_filt.traces[0].copy()
-    tr_times_filt = tr_filt.times()
-    tr_data_filt = tr_filt.data
+    tr_times = tr_filt.times()
+    tr_data = tr_filt.data
+    
+    #.filter('bandpass',freqmin=minfreq,freqmax=maxfreq,corners=1, zerophase=True)
+    tr_data_filt = np.zeros((len(tr_data),1))
+    tr_data_filt[0,0] = tr_data[0]
+    for i in range(0,len(tr_data)-1):
+        tr_data_filt[i+1,0] = tr_data_filt[i,0]*a + b*tr_data[i]
 
-
-
-    return tr_times_filt, tr_data_filt
+    return tr_data_filt
     
 
-def Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arrival):
+def Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arrival, Fs):
 
     nRows = int(signal_size-Window_Size)
     Array_trainingSingleData = np.zeros((nRows,Window_Size))
@@ -57,12 +109,13 @@ def Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arr
 
         k = k + 1
     
-    # fig,ax = plt.subplots(1,1,figsize=(10,3))
-    # plt.plot(tr_times[0:signal_size-Window_Size],tr_data[0:signal_size-Window_Size])
-    # plt.plot(tr_times[0:signal_size-Window_Size],Array_desiredwindowOutput[:,0])
-    # #ax.plot(tr_times,tr_data)
-    # ax.axvline(x = arrival, color='red',label='Rel.Arrival')
-    # plt.show()
+    fig,ax = plt.subplots(1,1,figsize=(10,3))
+    plt.plot(tr_times[0:signal_size-Window_Size],tr_data[0:signal_size-Window_Size])
+    plt.plot(tr_times[0:signal_size-Window_Size],Array_desiredwindowOutput[:,0])
+    #ax.plot(tr_times,tr_data)
+    ax.axvline(x = arrival, color='red',label='Rel.Arrival')
+    ax.axvline(x = arrival+Window_Size/Fs, color='blue',label='Rel.Arrival')
+    plt.show()
 
     # size [batch_size, sequence_length, feature_size] required    
     Array_trainingSingleData = Array_trainingSingleData.reshape((Array_trainingSingleData.shape[0], Array_trainingSingleData.shape[1], 1))  # Reshape to [batch_size, sequence_length, feature_size]
@@ -70,6 +123,69 @@ def Create_Sliding_Window_Array(Window_Size, signal_size, tr_times, tr_data, arr
 
 
     return nRows, Array_trainingSingleData, Array_desiredwindowOutput, arrival_index
+
+def reformInputData(st, tr_times_d, tr_data_d, Est_Arrival, total_signal_time = 1200):
+
+    MaxV = max(abs(tr_data_d))
+    tr_data_d = (tr_data_d)/(MaxV)   
+
+    arrival = Est_Arrival                                          
+    time_before_arrival = random.randrange(200,900)                   # [s]
+    time_after_arrival = total_signal_time - time_before_arrival      # [s]
+    arrival_index = np.where(tr_times_d >= arrival)[0][0]             # Index of tr_times_d containing the arrival time
+    
+    start_signal = arrival_index - round(st[0].stats.sampling_rate*time_before_arrival)
+    end_signal = arrival_index + round(st[0].stats.sampling_rate*time_after_arrival)
+
+    ## Correct for out of bounds. Still maintains total signal time.
+    if start_signal < 0:
+        end_signal = end_signal - start_signal
+        start_signal = 0
+    if end_signal >= len(tr_times_d):
+        start_signal = start_signal - (end_signal - (len(tr_times_d) - 1))
+        end_signal = len(tr_times_d) - 1
+
+    # Keep same amount of elements
+    tr_times = tr_times_d[start_signal:end_signal]
+    tr_data = tr_data_d[start_signal:end_signal]
+
+    
+    # Sliding window array creation
+    Window_Size = 200
+    signal_size = len(tr_data)
+    nRows = int(signal_size-Window_Size)
+    Array_trainingSingleData = np.zeros((nRows,Window_Size))
+    k = 0
+    while k < nRows:
+
+        inputNode = np.zeros((1,Window_Size))
+        inputNodet = np.zeros((1,Window_Size))
+
+        if k+Window_Size >= signal_size:
+            signal_size - k   # = 400
+            inputNode[0,0:signal_size - k] = tr_data[k:signal_size]
+            inputNodet[0,0:signal_size - k] = tr_data[k:signal_size]
+            inputNode[0,signal_size - k+1:Window_Size] = 0
+            inputNodet[0,signal_size - k+1:Window_Size] = 0
+        else:
+            inputNode[0,:] = tr_data[k:k+Window_Size]
+            inputNodet[0,:] = tr_times[k:k+Window_Size]
+
+        Array_trainingSingleData[k,:] = inputNode
+
+        k = k + 1
+    
+    fig,ax = plt.subplots(1,1,figsize=(10,3))
+    plt.plot(tr_times[0:signal_size-Window_Size],tr_data[0:signal_size-Window_Size])
+    #ax.plot(tr_times,tr_data)
+    ax.axvline(x = arrival, color='red',label='Rel.Arrival')
+    plt.show()
+
+    # size [batch_size, sequence_length, feature_size] required    
+    Array_trainingSingleData = Array_trainingSingleData.reshape((Array_trainingSingleData.shape[0], Array_trainingSingleData.shape[1], 1))  # Reshape to [batch_size, sequence_length, feature_size]
+   
+    return nRows, Array_trainingSingleData, tr_times, tr_data
+
 
 
 
@@ -81,6 +197,8 @@ def init_model(num_input, num_hidden_layers = 10, num_neurons_per_layer = 100):
 
     # Input is (x,y,z,rho)
     model.add(tf.keras.Input(num_input))
+
+
 
     for _ in range(num_hidden_layers):
         #adds the number of layer at each _ hidden layers
@@ -100,7 +218,7 @@ def init_model_Binary(num_input, num_hidden_layers = 10, num_neurons_per_layer =
 
     # Input elements
     model.add(tf.keras.Input(num_input))
-
+    
     #model.add(tf.keras.layers.Conv1D(64, kernel_size=3, activation='relu', input_shape=(num_input, 1)))
     #model.add(tf.keras.layers.MaxPooling1D(pool_size=2))
     #model.add(tf.keras.layers.LSTM(32, return_sequences=False))
@@ -110,6 +228,16 @@ def init_model_Binary(num_input, num_hidden_layers = 10, num_neurons_per_layer =
         model.add(tf.keras.layers.Dense(num_neurons_per_layer,
             activation=tf.keras.activations.get('relu'), 
             kernel_initializer='glorot_normal'))
+
+    model.add(tf.keras.layers.Dense(128,
+            activation=tf.keras.activations.get('relu'), 
+            kernel_initializer='glorot_normal'))
+    model.add(tf.keras.layers.Dense(64,
+        activation=tf.keras.activations.get('relu'), 
+        kernel_initializer='glorot_normal'))
+    model.add(tf.keras.layers.Dense(32,
+        activation=tf.keras.activations.get('relu'), 
+        kernel_initializer='glorot_normal'))
 
     # Output
     model.add(tf.keras.layers.Dense(1, activation = 'sigmoid'))
