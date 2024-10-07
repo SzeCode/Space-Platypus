@@ -9,6 +9,7 @@ Team Members:
 - Alexander Demishkevich
 - Jeff Zhong
 - Andy Cai
+- Laurence Liang
 
 Folder information
 - src contains the main program script
